@@ -1,0 +1,30 @@
+{
+    "$schema": "../public/settings.schema.json",
+    "page": {
+        "pgType": "LARGE_SCREEN",
+        "exemptDesignLint": true,
+        "exemptReason": "TowerX 高端大屏，详见 docs/design/ADR-001-towerx-large-screen-exemption.md"
+    },
+    "mode": "demo",
+    "brand": {
+        "metadataLine": "[01] · GLOBAL CONTROL TOWER · v 2.5",
+        "tagline": "SUPPLY CHAIN · AUTONOMOUS RESPONSE",
+        "heroTitleLine1": "Steering",
+        "heroFocalPhrase": "South China",
+        "heroTitleLine2": "in Real Time",
+        "feedSubhead": "华南片区 · AUTO-TRIAGED",
+        "regionLabel": "华南片区 · 22 节点"
+    },
+    "scene": {
+        "preset": "east-asia-focus",
+        "cameraOverrides": {
+            "cameraLngDeg": 108,
+            "cameraLatDeg": 15,
+            "cameraZ": 4.8
+        }
+    },
+    "crisis": {
+        "routeId": "guangzhou-hongkong",
+        "baseCities": ["guangzhou", "hochiminh"]
+    }
+}

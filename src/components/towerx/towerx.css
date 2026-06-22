@@ -1,0 +1,224 @@
+/* TowerX 专属样式入口。
+ *
+ * 设计 lint 历史背景：此文件位于 src/components/towerx/ 路径下，受 ADR-001
+ * LARGE_SCREEN 豁免保护。TowerX 的大量 backdrop-filter:blur / 超 8px
+ * box-shadow / radial-gradient 在 BI 看板硬性约束下属于违规，仅在大屏豁免
+ * 范围内允许。
+ */
+
+/* ── 通用 reset（包自带，host 项目无需再做 box-sizing/margin 等基础重置）── */
+* {
+    box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+    min-height: 100%;
+    margin: 0;
+}
+
+body {
+    min-width: 320px;
+    font-family: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+button,
+input,
+textarea,
+select {
+    font: inherit;
+}
+
+button {
+    border: 0;
+    cursor: pointer;
+    background: none;
+}
+
+img {
+    display: block;
+    max-width: 100%;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===== 自定义 utility / animation 类（原 TowerX index.css 关键子集） ===== */
+
+@keyframes towerx-pulse {
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.55;
+        transform: scale(1.4);
+    }
+}
+
+.anim-pulse {
+    animation: towerx-pulse 1.8s ease-in-out infinite;
+}
+
+/* ── Liquid glass tier 1 (light) ────────────────────────────────────
+ * Header pill / AiActionTicker 等小玻璃。8 px blur + 顶部 / 底部双向亮带，
+ * 边缘 1.4 px ::before 伪边走 mask-composite:exclude 仅描边不填充内部。
+ * 完整移植自原 TowerX index.css（保留 background-blend-mode:luminosity
+ * 让玻璃在亮背景下也能透出层次）。
+ */
+.liquid-glass {
+    position: relative;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.04);
+    background-blend-mode: luminosity;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.14);
+    border: none;
+}
+
+.liquid-glass::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1.4px;
+    background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.45) 0%,
+        rgba(255, 255, 255, 0.15) 20%,
+        transparent 40%,
+        transparent 60%,
+        rgba(255, 255, 255, 0.15) 80%,
+        rgba(255, 255, 255, 0.45) 100%
+    );
+    -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    pointer-events: none;
+}
+
+/* ── Liquid glass tier 2 (strong) ────────────────────────────────────
+ * 右栏 AlertFeed / AlertDetail / GlobeEditor3D 大面板用。
+ *
+ * 关键调参约束（原 TowerX 注释）：
+ *   - background 必须是 solid color，NOT gradient（任何 background-image
+ *     在 Safari 下会画在 blur 之上，把磨砂质感盖没）
+ *   - blur(14px) saturate(120%) 与 tier 1 的 blur(8px) 同源，让两层玻璃
+ *     读作「同一种材质」；曾用 blur(48px) saturate(180%) 把大球后方饱
+ *     和度过强地平均成单色淡紫，丢了材质感
+ *   - inset 0 1.5px 1px (top) + inset 0 -1px 1px (bottom) 是玻璃 USP 的
+ *     真正来源：顶部高光带 + 底部柔光，没有这两条玻璃就成了「半透明色块」
+ */
+.liquid-glass-strong {
+    position: relative;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.045);
+    backdrop-filter: blur(14px) saturate(120%);
+    -webkit-backdrop-filter: blur(14px) saturate(120%);
+    box-shadow:
+        0 28px 70px rgba(0, 0, 0, 0.45),
+        inset 0 1.5px 1px rgba(255, 255, 255, 0.32),
+        inset 0 -1px 1px rgba(255, 255, 255, 0.04);
+    border: none;
+}
+
+.liquid-glass-strong::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1.4px;
+    background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.5) 0%,
+        rgba(255, 255, 255, 0.2) 20%,
+        transparent 40%,
+        transparent 60%,
+        rgba(255, 255, 255, 0.2) 80%,
+        rgba(255, 255, 255, 0.5) 100%
+    );
+    -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    pointer-events: none;
+}
+
+/* meta 字体语义（原 index.css 中 .text-meta-secondary / .text-meta-ghost） */
+.text-meta-secondary {
+    font-size: 10.5px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    color: rgba(255, 255, 255, 0.55);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+}
+.text-meta-ghost {
+    font-size: 10px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    color: rgba(255, 255, 255, 0.32);
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+}
+
+/* AlertRow 悬停 / 新增 —— 原 index.css 有更复杂的 keyframes，这里给最小可读版 */
+.alert-row {
+    transition: background 220ms ease, transform 220ms ease;
+}
+.alert-row:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+.alert-row-fresh {
+    animation: towerx-row-fresh 600ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes towerx-row-fresh {
+    from {
+        opacity: 0;
+        transform: translateX(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* 入场动画占位 —— v1.0 不复刻原项目 entry-stage-* 精细时序，留空避免 className
+ * 触发未知类警告（Tailwind JIT 会忽略未匹配的类）。v1.1 视觉打磨时复刻。 */
+.entry-stage-1,
+.entry-stage-2,
+.entry-stage-3,
+.card-slide-in,
+.cs-2,
+.cs-3,
+.cs-4,
+.pill-in,
+.hairline-in {
+}
+
+/* TowerX 暗夜底色 —— html+body 都暗，color-scheme:dark 防 host 浅色样式泄漏 */
+html,
+body {
+    background: #08041a;
+    color: #eef4ff;
+    color-scheme: dark;
+}

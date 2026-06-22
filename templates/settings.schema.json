@@ -1,0 +1,392 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://towerx.local/schemas/settings.schema.json",
+    "title": "AppSettings",
+    "description": "观远 SuperApp 运行时配置文件 settings.json 的结构定义。由 src/services/settings.ts 的 loadAppSettings() 在应用启动时拉取。",
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+        "$schema": {
+            "type": "string",
+            "description": "JSON Schema 引用路径，仅供 IDE 编辑器校验使用，运行时被 AppSettings 加载逻辑忽略。"
+        },
+        "name": {
+            "type": "string",
+            "description": "应用名称。占位首页用于显示在标题位置；当 title 字段未配置或为空时，回落到 name 作为浏览器标签标题。"
+        },
+        "title": {
+            "type": "string",
+            "description": "浏览器标签页标题。优先级高于 name；二者皆为空字符串时回落到 DEFAULT_APP_TITLE（'观远 BI 应用'）。"
+        },
+        "page": {
+            "type": "object",
+            "description": "页面级元数据。声明当前应用以何种页面类型对外呈现，以及是否豁免标准 BI 设计护栏。",
+            "additionalProperties": false,
+            "properties": {
+                "pgType": {
+                    "type": "string",
+                    "enum": ["PAGE", "LARGE_SCREEN", "ANALYSE_REPORT", "OVERVIEW"],
+                    "description": "页面类型枚举，与 src/bi-services/page.ts 中 IPageInfo['pgType'] 保持同步。PAGE=标准仪表板；LARGE_SCREEN=高端大屏（用于豁免标准 BI 视觉护栏）；ANALYSE_REPORT=分析报告；OVERVIEW=概览页。"
+                },
+                "exemptDesignLint": {
+                    "type": "boolean",
+                    "description": "是否豁免 scripts/design-lint.mjs 的硬性视觉约束。仅当 pgType === 'LARGE_SCREEN' 且本字段为 true 时，design:lint 默认模式才跳过当前页面对应的样式文件；design:lint:strict 始终全量扫描，不读取此字段。"
+                },
+                "exemptReason": {
+                    "type": "string",
+                    "description": "豁免理由的简短说明，必须指向具体 ADR 文件路径（例如 'docs/design/ADR-001-towerx-large-screen-exemption.md'）。PR 审查时若 exemptDesignLint=true 而本字段未指向有效 ADR，视为违规改动。",
+                    "minLength": 1
+                }
+            },
+            "allOf": [
+                {
+                    "if": {
+                        "properties": {
+                            "exemptDesignLint": { "const": true }
+                        },
+                        "required": ["exemptDesignLint"]
+                    },
+                    "then": {
+                        "required": ["pgType", "exemptReason"],
+                        "properties": {
+                            "pgType": { "const": "LARGE_SCREEN" }
+                        }
+                    }
+                }
+            ]
+        },
+
+        "mode": {
+            "type": "string",
+            "enum": ["demo", "monitor", "bi"],
+            "description": "叙事密度模式。demo=演示模式（路演 / 客户接待，A 默认）；monitor=监控模式（NOC / 7×24 值班，B）；bi=BI 模式（季度复盘 / 业务分析，C）。详见 docs/architecture/towerx-template.md §4。"
+        },
+
+        "brand": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "品牌相关文案与色彩配置。所有字段都可被客户在 settings.json 中覆盖；缺省时回落到 TowerX 模板默认值。",
+            "properties": {
+                "primaryColor": {
+                    "type": "string",
+                    "pattern": "^#[0-9a-fA-F]{6}$",
+                    "description": "客户品牌主色（hex），覆盖 PALETTE.blue。影响：国家线 / 城市辉光 / 航线 / halo / hero hairline 等所有标记为「基建蓝」的视觉元素。注意：紫色（AI）/ 品红（危机）/ 金色（价值）不会被覆盖。"
+                },
+                "metadataLine": {
+                    "type": "string",
+                    "description": "Header 左上元数据行（如 '[01] · GLOBAL CONTROL TOWER · v 2.5'）。客户填项目编号 / 控制台名 / 版本。"
+                },
+                "tagline": {
+                    "type": "string",
+                    "description": "Header 元数据下方副标题行（如 'SUPPLY CHAIN · AUTONOMOUS RESPONSE'）。建议格式：行业 · AUTONOMOUS 模式。"
+                },
+                "heroTitleLine1": {
+                    "type": "string",
+                    "description": "Hero 标题第一行（如 'Steering East Asia'）。模板会把 heroFocalPhrase 自动渲染为渐变焦点 span，所以本字段填的是「heroFocalPhrase 之外」的部分。"
+                },
+                "heroFocalPhrase": {
+                    "type": "string",
+                    "description": "Hero 标题中的渐变焦点短语（如 'East Asia'）。全屏唯一允许 background-clip:text 的元素。"
+                },
+                "heroTitleLine2": {
+                    "type": "string",
+                    "description": "Hero 标题第二行（如 'in Real Time'）。通常是时态副词或动作描述。"
+                },
+                "feedSubhead": {
+                    "type": "string",
+                    "description": "右栏 AlertFeed 的副标题（如 'EAST ASIA · AUTO-TRIAGED'）。建议格式：业务地理范围 · AUTO-TRIAGED。"
+                },
+                "regionLabel": {
+                    "type": "string",
+                    "description": "Header pill 行末位的地理 / 节点数标签（如 'EAST ASIA · 30 节点'）。建议格式：业务地理范围 · N 节点。客户没填时回落到 'EAST ASIA · {cities.length} 节点'。"
+                }
+            }
+        },
+
+        "scene": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "3D 场景相机与地球外观配置。",
+            "properties": {
+                "preset": {
+                    "type": "string",
+                    "enum": ["east-asia-focus", "globe-overview", "background-decoration"],
+                    "description": "相机机位预设。详见 src/components/towerx/scene/cameraPresets.ts。east-asia-focus 对应 demo 模式，globe-overview 对应 monitor 模式，background-decoration 对应 bi 模式。"
+                },
+                "cameraOverrides": {
+                    "type": "object",
+                    "additionalProperties": true,
+                    "description": "预设之外的相机精调（部分覆盖 WebGLGlobeConfig 的字段，例如只改 cameraLngDeg）。结构与 WebGLGlobeConfig 一致，但所有字段可选。"
+                },
+                "earthVariant": {
+                    "type": "string",
+                    "enum": ["stylized-dark", "stylized-light"],
+                    "description": "地球外观变体。v1.0 仅实现 stylized-dark；stylized-light 留接口给 v2.0 BI 白昼模式。"
+                }
+            }
+        },
+
+        "crisis": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "客户专属危机叙事配置。这是模板里唯一允许写「具体业务故事」的位置 —— 模板代码层不持有任何客户叙事字符串。",
+            "properties": {
+                "routeId": {
+                    "type": "string",
+                    "description": "置顶危机卡对应的航线 ID（如 'hongkong-shanghai'）。决定 AlertFeed 顶部 pinned crisis、ambient engine 常驻脉冲、CrisisReroute 三层联动的中心航线。"
+                },
+                "baseCities": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "minItems": 2,
+                    "maxItems": 2,
+                    "description": "危机起讫城市对（两个 city id），用于 CrisisReroute 几何计算。通常对应 routeId 的 source / target。"
+                },
+                "focusPose": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "description": "危机详情打开时相机的目标机位（电影聚焦）。由 FocusTuner 真机调出 → 「复制为默认值」回写。",
+                    "properties": {
+                        "fov": { "type": "number" },
+                        "posX": { "type": "number" },
+                        "posY": { "type": "number" },
+                        "radius": { "type": "number" }
+                    }
+                },
+                "planeTrim": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "description": "PlaneInStorm 中飞机的初始姿态（航向 / 俯仰 / 横滚 / 尺寸 / 机身明度）。由 PlaneTrimTuner 真机调出。",
+                    "properties": {
+                        "pitch": { "type": "number" },
+                        "roll": { "type": "number" },
+                        "yaw": { "type": "number" },
+                        "scale": { "type": "number" },
+                        "bodyShade": { "type": "number" }
+                    }
+                },
+                "planeMotion": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "description": "PlaneInStorm 中飞机的运动节奏（暴风强度 / 巡航摇摆 / 着陆周期 / 抬头 / FOV / 相机距离 / 触地高度）。由 PlaneMotionTuner 真机调出。",
+                    "properties": {
+                        "stormAmp": { "type": "number" },
+                        "stormTempo": { "type": "number" },
+                        "cruiseSway": { "type": "number" },
+                        "landCycleSecs": { "type": "number" },
+                        "flarePitchDeg": { "type": "number" },
+                        "takeoffPitchDeg": { "type": "number" },
+                        "camFov": { "type": "number" },
+                        "camDist": { "type": "number" },
+                        "touchY": { "type": "number" }
+                    }
+                },
+                "downstreamArcs": {
+                    "type": "array",
+                    "description": "危机点 → 下游受影响节点的弧线集合（2-4 条）。决定 CrisisReroute 问题拍的扇形红线。",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["key", "source", "target"],
+                        "properties": {
+                            "key": { "type": "string" },
+                            "source": { "type": "string" },
+                            "target": { "type": "string" },
+                            "liftK": {
+                                "type": "number",
+                                "description": "弧线高度系数，调和多条弧不互压（典型 0.85 - 1.2）。"
+                            }
+                        }
+                    }
+                },
+                "candidateArcs": {
+                    "type": "array",
+                    "description": "AI 推理时尝试的备用航线集合（典型 3 条）。CrisisReroute 推理拍逐条试探，最后只留 winnerCandidateKey 对应的胜出方案。",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["key", "source", "via", "target"],
+                        "properties": {
+                            "key": { "type": "string" },
+                            "source": { "type": "string" },
+                            "via": { "type": "string", "description": "中转节点 city id。" },
+                            "target": { "type": "string" },
+                            "liftK": { "type": "number" },
+                            "start": { "type": "number" },
+                            "draw": { "type": "number" },
+                            "retreat": { "type": "number" }
+                        }
+                    }
+                },
+                "winnerCandidateKey": {
+                    "type": "string",
+                    "description": "AI 推理最终选定的方案 key，必须等于 candidateArcs 中某个 entry 的 key。"
+                },
+                "story": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "description": "危机详情面板的客户叙事文案。这是模板里唯一允许写「具体业务故事」的位置。",
+                    "properties": {
+                        "sceneHud": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "description": "PlaneInStorm 3D 场景四角的客户文案（SOP 编号 / 机型 / 航点对 / 空管参数）。",
+                            "properties": {
+                                "topLeft": {
+                                    "type": "array",
+                                    "items": { "type": "string" },
+                                    "minItems": 2,
+                                    "maxItems": 2
+                                },
+                                "topRight": {
+                                    "type": "array",
+                                    "items": { "type": "string" },
+                                    "minItems": 2,
+                                    "maxItems": 2
+                                }
+                            }
+                        },
+                        "alertTitle": {
+                            "type": "string",
+                            "description": "危机卡标题，覆盖 mock-data 中危机 alert 的 title 字段。"
+                        },
+                        "alertMeta": {
+                            "type": "string",
+                            "description": "危机卡元数据行（如 'SOP-A47 · 4 batches · ETA +24m'），覆盖 alert.meta。"
+                        },
+                        "insight": {
+                            "type": "string",
+                            "description": "危机详情「现在事件」正文，覆盖 alert.insight。"
+                        },
+                        "downstream": {
+                            "type": "array",
+                            "items": { "type": "string" },
+                            "description": "危机四拍拍1「受影响下游」，每条 2-4 行，覆盖 alert.downstream。"
+                        },
+                        "reasoning": {
+                            "type": "array",
+                            "items": { "type": "string" },
+                            "description": "危机四拍拍2「AI 推理」逐行流入文案，覆盖 alert.reasoning。"
+                        },
+                        "plan": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "description": "危机四拍拍3「AI 计划」，覆盖 alert.plan。",
+                            "required": ["route", "costDelta", "avoidedLoss", "confidence"],
+                            "properties": {
+                                "route": { "type": "string", "description": "方案路线描述（如 '华中空运中继 · HKG→WUH 空运 + WUH→PVG 补位'）。" },
+                                "costDelta": { "type": "string", "description": "成本增量（如 '+¥1.2M'）。" },
+                                "avoidedLoss": { "type": "string", "description": "AI 规避损失金额（如 '¥18.4M'）。" },
+                                "confidence": { "type": "number", "minimum": 0, "maximum": 1, "description": "AI 置信度（0-1）。" }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+
+        "layout": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "HUD 布局尺寸配置。",
+            "properties": {
+                "heroFontPx": {
+                    "type": "number",
+                    "minimum": 40,
+                    "description": "Header hero 标题字号。建议 80-100 px；触发 design:lint 字号上限警告但已被 ADR-001 豁免。"
+                },
+                "feedColumnWidth": {
+                    "type": "number",
+                    "description": "右栏 AlertFeed 宽度（px）。Day 3 默认 360；监控模式可改 280-320 让出主屏，BI 模式可改 0 / 隐藏。"
+                },
+                "paddingTop": { "type": "number" },
+                "paddingRight": { "type": "number" },
+                "paddingBottom": { "type": "number" },
+                "paddingLeft": { "type": "number" }
+            }
+        },
+
+        "telemetry": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "左下角 Telemetry 五行遥测的静态值。FLOWS 派生自 routes 表，AI 规避损失派生自 useSavedValue，其余 4 项由客户配置。",
+            "properties": {
+                "lat": {
+                    "type": "string",
+                    "description": "LAT 字段值（如 '31.80°N'）。建议填客户业务核心城市的纬度。"
+                },
+                "latency": {
+                    "type": "string",
+                    "description": "LATENCY 字段值（如 '38 ms'）。"
+                },
+                "model": {
+                    "type": "string",
+                    "description": "MODEL 字段值（如 'TOWER-X · turbo'）。建议填客户实际用的 AI 模型代号。"
+                },
+                "confidence": {
+                    "type": "string",
+                    "description": "CONFIDENCE 字段值（如 '99.2%'）。"
+                },
+                "savedAmount": {
+                    "type": "string",
+                    "description": "AI 规避损失初值（如 '¥ 2.43M'）。useSavedValue hook 会基于此值递增 ticking。"
+                },
+                "latLabel": {
+                    "type": "string",
+                    "description": "LAT 遥测行的标签覆盖（默认 'LAT'）。行业本地化时改为业务术语，如 '医院数'。"
+                },
+                "latencyLabel": {
+                    "type": "string",
+                    "description": "LATENCY 遥测行的标签覆盖（默认 'LATENCY'）。"
+                },
+                "modelLabel": {
+                    "type": "string",
+                    "description": "MODEL 遥测行的标签覆盖（默认 'MODEL'）。"
+                },
+                "confidenceLabel": {
+                    "type": "string",
+                    "description": "CONFIDENCE 遥测行的标签覆盖（默认 'CONFIDENCE'）。"
+                }
+            }
+        },
+
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "数据源配置。v1.0 默认 useMockData=true 跑通画面，Phase 2 接 BI 数据后切换。",
+            "properties": {
+                "useMockData": {
+                    "type": "boolean",
+                    "description": "是否使用 mock-data.ts 的硬编码数据。true=用 mock 跑画面，false=通过 bi 字段拉真实数据集。"
+                },
+                "bi": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "description": "BI 数据集 ID 配置。仅在 useMockData=false 时生效。",
+                    "properties": {
+                        "citiesDsId": { "type": "string", "description": "城市表数据集 ID。" },
+                        "routesDsId": { "type": "string", "description": "航线表数据集 ID。" },
+                        "alertsDsId": { "type": "string", "description": "Alert 数据集 ID（或表单 ID）。" }
+                    }
+                }
+            }
+        },
+
+        "assets": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "3D 模型资产 URL 配置。详见 docs/sop/3d-asset-sourcing.md §4。",
+            "properties": {
+                "baseUrl": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "CDN / OSS 资产根地址。客户切换 CDN 时只改这一个字段。"
+                },
+                "ships": { "type": "string", "description": "船舶 glb 文件名（相对 baseUrl）。" },
+                "planes": { "type": "string", "description": "飞机 glb 文件名。" },
+                "trucks": { "type": "string", "description": "卡车 glb 文件名。" },
+                "warehouse": { "type": "string", "description": "仓库 glb 文件名。" }
+            }
+        }
+    }
+}

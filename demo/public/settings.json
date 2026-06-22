@@ -1,0 +1,34 @@
+{
+    "$schema": "../public/settings.schema.json",
+    "page": {
+        "pgType": "LARGE_SCREEN",
+        "exemptDesignLint": true,
+        "exemptReason": "TowerX 高端大屏，详见 docs/design/ADR-001-towerx-large-screen-exemption.md"
+    },
+    "mode": "demo",
+    "crisis": {
+        "routeId": "hongkong-shanghai",
+        "baseCities": ["shenzhen", "hongkong"],
+        "story": {
+            "alertTitle": "深圳 → 香港 空运航线中断",
+            "alertMeta": "台风「珊珊」· 封航 72h · 规避损失 ¥5000万",
+            "insight": "台风「珊珊」登陆深圳外海，赤湾港及香港赤鱲角终端区全面封控。AI 推演深圳→香港全线 72h 停运，已启动多级备援链路，规避潜在供应链断链损失约 5000 万元。",
+            "downstream": [
+                "华南 RDC · 珠三角 7 仓 D+3 断货风险",
+                "香港枢纽 · 38 票后续航段滞留待处置",
+                "新加坡联程 · 出口窗口提前 24h 关闭"
+            ],
+            "reasoning": [
+                "SZX→HKG 台风封港 · 预计停运 +72h",
+                "替代：SZX→GZH 空运中继 + GZH→HKG 陆运翻坝",
+                "净影响：成本 +¥3.2M / 规避损失 ¥5000万"
+            ],
+            "plan": {
+                "route": "华南空运中继 · SZX→GZH 空运 + GZH→HKG 陆运翻坝补位",
+                "costDelta": "+¥3.2M",
+                "avoidedLoss": "¥5000万",
+                "confidence": 0.96
+            }
+        }
+    }
+}

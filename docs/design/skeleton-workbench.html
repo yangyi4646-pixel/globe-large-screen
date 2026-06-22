@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>门店经营分析工作台 · 骨架示例</title>
+<!--
+  浅色数据工作台 · 可抄骨架
+  配套设计系统:docs/design/DESIGN-workbench-light.md
+  用法:复制本骨架的结构与 CSS,替换业务内容和数据。token 改动以 DESIGN.md 为准。
+  这是 BI-native 工作台的目标范式 —— App Shell + 数据优先 + 真图表,不是营销 landing 页。
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<style>
+  :root {
+    /* 系统色 */
+    --bg: #f7f8fa; --surface-1: #ffffff; --surface-2: #f1f3f5;
+    --text-1: #17202a; --text-2: #3f4b5f; --text-3: #6b778c;
+    --border: #dfe3ea; --accent: #2563eb; --accent-soft: #e8f0ff;
+    /* 状态色 */
+    --success: #0f9f6e; --warning: #b7791f; --danger: #d64545; --info: #0369a1;
+    --success-soft: #e6f5ef; --warning-soft: #f7efde; --danger-soft: #f8e8e8;
+    /* 图表色 */
+    --data-1: #2563eb; --data-2: #0f9f6e; --data-3: #b7791f;
+    --data-4: #7c3aed; --data-5: #0891b2; --data-6: #db2777;
+    /* 形状 */
+    --radius-control: 6px; --radius-panel: 8px;
+    --shadow-1: 0 1px 2px rgba(23,32,42,0.05);
+    --shadow-2: 0 2px 8px rgba(23,32,42,0.08);
+    --font-sans: "Inter","PingFang SC","Microsoft YaHei",sans-serif;
+    --font-mono: "JetBrains Mono",ui-monospace,monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--text-1);
+    font-family: var(--font-sans); font-size: 13px; line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  h1, h2, h3 { margin: 0; font-family: var(--font-sans); }
+
+  /* ===== App Shell ===== */
+  .app { display: grid; grid-template-columns: 232px 1fr; min-height: 100vh; }
+
+  /* ===== Sidebar ===== */
+  .sidebar {
+    background: var(--surface-1); border-right: 1px solid var(--border);
+    padding: 16px 14px; position: sticky; top: 0; height: 100vh;
+    display: flex; flex-direction: column; gap: 4px; overflow-y: auto;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; padding: 6px 8px 16px; border-bottom: 1px solid var(--border); margin-bottom: 8px; }
+  .brand .logo {
+    width: 30px; height: 30px; display: grid; place-items: center;
+    background: var(--accent); color: #fff; font-weight: 700; font-size: 15px;
+    border-radius: var(--radius-control);
+  }
+  .brand .name { font-weight: 600; font-size: 13px; }
+  .brand .name .sub { font-size: 10px; font-weight: 400; color: var(--text-3); letter-spacing: 0.06em; text-transform: uppercase; margin-top: 2px; }
+  .side-group-title { padding: 10px 10px 4px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); font-weight: 600; }
+  .nav { display: flex; flex-direction: column; gap: 2px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 8px; padding: 7px 10px;
+    color: var(--text-2); text-decoration: none; border-radius: var(--radius-control);
+    font-size: 13px; font-weight: 500;
+  }
+  .nav-item:hover { background: var(--surface-2); color: var(--text-1); }
+  .nav-item.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+  .side-foot {
+    margin-top: auto; padding: 10px 12px; background: var(--surface-2);
+    border: 1px solid var(--border); border-radius: var(--radius-panel);
+  }
+  .side-foot .t { font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+  .side-foot .m { font-size: 11px; color: var(--text-3); line-height: 1.5; }
+  .side-foot .stamp {
+    display: inline-flex; align-items: center; gap: 4px; margin-top: 8px;
+    padding: 3px 8px; background: var(--success-soft); color: var(--success);
+    border-radius: 999px; font-size: 10px; font-weight: 600;
+  }
+  .side-foot .stamp .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--success); }
+
+  /* ===== Main ===== */
+  .main { display: flex; flex-direction: column; min-width: 0; }
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 11px 28px; background: var(--surface-1);
+    border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10;
+  }
+  .crumb { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-3); }
+  .crumb .now { color: var(--text-1); font-weight: 600; }
+  .topbar-actions { display: flex; align-items: center; gap: 8px; }
+  .seg { display: inline-flex; padding: 3px; background: var(--surface-2); border-radius: var(--radius-control); }
+  .seg button {
+    padding: 4px 10px; border: none; background: transparent; color: var(--text-2);
+    border-radius: 4px; cursor: pointer; font-family: var(--font-sans); font-size: 12px; font-weight: 500;
+  }
+  .seg button.on { background: var(--surface-1); color: var(--text-1); box-shadow: var(--shadow-1); }
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px;
+    font-size: 12px; font-weight: 500; border-radius: var(--radius-control);
+    border: 1px solid var(--border); background: var(--surface-1); color: var(--text-2);
+    cursor: pointer; font-family: var(--font-sans);
+  }
+  .btn:hover { background: var(--surface-2); color: var(--text-1); }
+  .btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  /* ===== Content ===== */
+  .content { padding: 24px 28px 60px; max-width: 1480px; margin: 0 auto; width: 100%; }
+
+  .page-head { margin-bottom: 20px; }
+  .page-head h1 { font-size: 22px; font-weight: 600; margin-bottom: 6px; }
+  .page-head .lead { font-size: 13px; color: var(--text-2); line-height: 1.7; max-width: 760px; }
+  .page-head .lead .hl { color: var(--accent); font-weight: 600; }
+  .page-head .meta-row { display: flex; gap: 16px; margin-top: 10px; font-size: 11px; color: var(--text-3); }
+  .page-head .meta-row b { color: var(--text-2); font-weight: 600; }
+
+  /* KPI grid */
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 22px; }
+  .kpi {
+    background: var(--surface-1); border: 1px solid var(--border);
+    border-radius: var(--radius-panel); padding: 16px 18px; box-shadow: var(--shadow-1);
+  }
+  .kpi-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .kpi-label { font-size: 12px; color: var(--text-2); font-weight: 500; }
+  .kpi-trend {
+    display: inline-flex; align-items: center; gap: 3px; font-size: 10px; font-weight: 600;
+    padding: 1px 6px; border-radius: 4px; background: var(--surface-2); color: var(--text-3);
+  }
+  .kpi-trend.up { background: var(--success-soft); color: var(--success); }
+  .kpi-trend.down { background: var(--danger-soft); color: var(--danger); }
+  .kpi-trend.warn { background: var(--warning-soft); color: var(--warning); }
+  .kpi .value-row { display: flex; align-items: baseline; gap: 4px; margin-bottom: 8px; }
+  .kpi .value { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-weight: 600; font-size: 30px; line-height: 1.05; letter-spacing: -0.01em; }
+  .kpi .unit { font-size: 13px; color: var(--text-2); font-weight: 500; }
+  .kpi .compare { display: flex; gap: 14px; padding-top: 10px; border-top: 1px dashed var(--border); font-size: 11px; color: var(--text-3); }
+  .kpi .compare .delta { font-family: var(--font-mono); font-weight: 600; }
+  .delta.pos { color: var(--success); } .delta.neg { color: var(--danger); }
+
+  /* Section */
+  .sec { margin-bottom: 22px; }
+  .sec-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 12px; }
+  .sec-head .idx { font-family: var(--font-mono); font-size: 12px; color: var(--text-3); letter-spacing: 0.06em; }
+  .sec-head h2 { font-size: 15px; font-weight: 600; }
+  .sec-head .desc { margin-left: auto; font-size: 12px; color: var(--text-3); }
+
+  .panel {
+    background: var(--surface-1); border: 1px solid var(--border);
+    border-radius: var(--radius-panel); padding: 18px 20px; box-shadow: var(--shadow-1);
+  }
+  .panel-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 14px; }
+  .panel-head h3 { font-size: 14px; font-weight: 600; }
+  .panel-head .sub { font-size: 11px; color: var(--text-3); }
+  .grid-2 { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
+  .chart-box { width: 100%; height: 280px; }
+
+  /* insight */
+  .insight {
+    background: var(--surface-1); border: 1px solid var(--border);
+    border-left: 3px solid var(--accent); border-radius: var(--radius-panel);
+    padding: 14px 18px; display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: center;
+  }
+  .insight .badge { font-family: var(--font-mono); font-size: 11px; color: var(--accent); background: var(--accent-soft); padding: 3px 8px; border-radius: 4px; white-space: nowrap; }
+  .insight .text { font-size: 13px; color: var(--text-2); line-height: 1.6; }
+  .insight .text b { color: var(--text-1); }
+
+  /* table */
+  .data-table { width: 100%; border-collapse: collapse; }
+  .data-table th {
+    text-align: left; font-size: 11px; font-weight: 600; color: var(--text-3);
+    padding: 8px 12px; border-bottom: 1px solid var(--border); text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .data-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 13px; color: var(--text-2); }
+  .data-table tr:hover td { background: var(--surface-2); }
+  .data-table .name { font-weight: 600; color: var(--text-1); }
+  .data-table .meta { font-size: 11px; color: var(--text-3); }
+  .data-table td.num { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; color: var(--text-1); }
+  .data-table td.num.neg { color: var(--danger); }
+  .pill { display: inline-flex; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; }
+  .pill.ok { background: var(--success-soft); color: var(--success); }
+  .pill.warn { background: var(--warning-soft); color: var(--warning); }
+  .pill.bad { background: var(--danger-soft); color: var(--danger); }
+
+  .foot-note { margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 11px; color: var(--text-3); display: flex; justify-content: space-between; }
+
+  /* responsive: 移动端按任务重排,不是等比缩小 */
+  @media (max-width: 1024px) {
+    .app { grid-template-columns: 1fr; }
+    .sidebar { position: static; height: auto; flex-direction: row; flex-wrap: wrap; align-items: center; }
+    .side-group-title, .side-foot { display: none; }
+    .nav { flex-direction: row; flex-wrap: wrap; }
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .grid-2 { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 768px) {
+    .content { padding: 16px; }
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .sec-head .desc { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ===== Sidebar ===== -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo">观</div>
+      <div class="name">门店经营分析<div class="sub">Store Ops</div></div>
+    </div>
+    <div class="side-group-title">分析主题</div>
+    <nav class="nav">
+      <a class="nav-item active" href="#">经营全景</a>
+      <a class="nav-item" href="#">收入与利润</a>
+      <a class="nav-item" href="#">渠道结构</a>
+      <a class="nav-item" href="#">门店排行</a>
+      <a class="nav-item" href="#">服务体验</a>
+    </nav>
+    <div class="side-group-title">操作</div>
+    <nav class="nav">
+      <a class="nav-item" href="#">数据筛选</a>
+      <a class="nav-item" href="#">导出报表</a>
+    </nav>
+    <div class="side-foot">
+      <div class="t">数据状态</div>
+      <div class="m">3 个数据集 · 日级聚合</div>
+      <div class="stamp"><span class="dot"></span>已更新 2023-07-31</div>
+    </div>
+  </aside>
+
+  <!-- ===== Main ===== -->
+  <div class="main">
+    <header class="topbar">
+      <div class="crumb">门店经营分析<span>/</span><span class="now">经营全景</span></div>
+      <div class="topbar-actions">
+        <div class="seg">
+          <button class="on">看板</button>
+          <button>明细表</button>
+        </div>
+        <button class="btn">数据筛选</button>
+        <button class="btn primary">导出报表</button>
+      </div>
+    </header>
+
+    <main class="content">
+      <!-- page-head:一句话主判断 + 口径 -->
+      <div class="page-head">
+        <h1>经营全景 · 2023-07</h1>
+        <p class="lead">本月实收回升明显,但 <span class="hl">利润率仅 7.2%</span>,利润恢复弱于规模恢复;平台外卖占比逼近 44%,折扣深度是利润质量的主要压力点。</p>
+        <div class="meta-row">
+          <span>统计周期 <b>2022-07 ~ 2023-07</b></span>
+          <span>覆盖门店 <b>130 家</b></span>
+          <span>数据更新 <b>日级聚合</b></span>
+        </div>
+      </div>
+
+      <!-- KPI grid:4 个核心指标,数据优先,首屏第一视觉位 -->
+      <div class="kpi-grid">
+        <div class="kpi">
+          <div class="kpi-head"><span class="kpi-label">本月实收</span><span class="kpi-trend up">▲ 环比 +17.2%</span></div>
+          <div class="value-row"><span class="value">59.49</span><span class="unit">亿元</span></div>
+          <div class="compare"><span>累计 <span class="num">669.36</span> 亿</span><span>客单价 <span class="num">29.1</span> 元</span></div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-head"><span class="kpi-label">整体利润率</span><span class="kpi-trend warn">! 偏薄</span></div>
+          <div class="value-row"><span class="value">7.22</span><span class="unit">%</span></div>
+          <div class="compare"><span>利润总额 <span class="num">48.33</span> 亿</span><span class="delta neg">恢复弱于规模</span></div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-head"><span class="kpi-label">平台外卖占比</span><span class="kpi-trend up">▲ +2.1pct</span></div>
+          <div class="value-row"><span class="value">43.85</span><span class="unit">%</span></div>
+          <div class="compare"><span>美团 <span class="num">27.9%</span></span><span>饿了么 <span class="num">16.0%</span></span></div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-head"><span class="kpi-label">投诉率</span><span class="kpi-trend down">▼ 重点门店波动大</span></div>
+          <div class="value-row"><span class="value">14.1</span><span class="unit">/ 万单</span></div>
+          <div class="compare"><span>好评率 <span class="num">91.70%</span></span><span>差评 <span class="num">490.8</span> 万</span></div>
+        </div>
+      </div>
+
+      <!-- Section 01:趋势图 + 侧栏说明 -->
+      <section class="sec">
+        <div class="sec-head">
+          <span class="idx">01</span>
+          <h2>收入与利润趋势</h2>
+          <span class="desc">规模恢复成立,利润恢复未完全跟上</span>
+        </div>
+        <div class="grid-2">
+          <div class="panel">
+            <div class="panel-head">
+              <h3>月度实收 vs 利润</h3>
+              <span class="sub">2022-07 ~ 2023-07</span>
+            </div>
+            <div id="chart-trend" class="chart-box"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><h3>渠道收入占比</h3><span class="sub">本月</span></div>
+            <div id="chart-channel" class="chart-box"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- insight 洞察块:把图表结论显性化 -->
+      <section class="sec">
+        <div class="insight">
+          <div class="badge">KEY INSIGHT</div>
+          <div class="text">
+            <b>2023-07 收入冲到阶段高位,但利润率仍只有 7.2%。</b>
+            POS 与平台外卖体量已几乎相当,而平台折扣率(美团 14.9% / 饿了么 17.2%)显著高于 POS,这是利润质量被稀释的直接原因。建议优先治理平台折扣结构,而非继续泛化扩规模。
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 02:门店明细表 -->
+      <section class="sec">
+        <div class="sec-head">
+          <span class="idx">02</span>
+          <h2>高规模门店里的风险样本</h2>
+          <span class="desc">收入靠前的门店已混入低利润、高投诉样本</span>
+        </div>
+        <div class="panel" style="padding:0">
+          <table class="data-table">
+            <thead>
+              <tr><th>门店</th><th>状态</th><th style="text-align:right">实收</th><th style="text-align:right">利润率</th><th style="text-align:right">投诉率</th></tr>
+            </thead>
+            <tbody id="store-table"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <div class="foot-note">
+        <span>数据来源 · 餐厅订单主表 / 餐厅渠道订单数据 / 餐厅维表</span>
+        <span>口径 · 利润率 =(收入 − 成本 − 折扣)/ 收入</span>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+/* ===== ECharts 统一约定(复用到所有图表) ===== */
+const C = {
+  data: ['#2563eb','#0f9f6e','#b7791f','#7c3aed','#0891b2','#db2777'],
+  text2: '#3f4b5f', text3: '#6b778c', border: '#dfe3ea', surface1: '#ffffff',
+};
+const axisLabel = { color: C.text3, fontFamily: 'JetBrains Mono, monospace', fontSize: 11 };
+function gridDefault() { return { top: 28, right: 12, bottom: 24, left: 8, containLabel: true }; }
+function axisX(data) {
+  return { type: 'category', data, axisTick: { show: false },
+    axisLine: { lineStyle: { color: C.border } }, axisLabel };
+}
+function axisY(formatter) {
+  return { type: 'value', axisLine: { show: false }, axisTick: { show: false },
+    splitLine: { lineStyle: { color: C.border, type: [4, 4] } },
+    axisLabel: { ...axisLabel, formatter } };
+}
+function tooltipStyle() {
+  return { backgroundColor: C.surface1, borderColor: C.border, borderWidth: 1,
+    textStyle: { color: '#17202a', fontSize: 12 },
+    extraCssText: 'border-radius:6px;box-shadow:0 2px 8px rgba(23,32,42,0.08);' };
+}
+
+/* ----- 趋势图:实收柱 + 利润率折线 ----- */
+const months = ['07','08','09','10','11','12','01','02','03','04','05','06','07'];
+const netRev = [53.0,58.2,49.6,48.7,46.7,53.7,52.4,46.5,50.7,48.4,51.1,50.8,59.5];
+const margin = [9.2,10.5,7.9,6.3,4.7,4.6,8.9,6.4,7.2,7.2,6.1,6.2,7.8];
+const cTrend = echarts.init(document.getElementById('chart-trend'));
+cTrend.setOption({
+  grid: gridDefault(),
+  tooltip: { trigger: 'axis', ...tooltipStyle() },
+  legend: { data: ['实收(亿)', '利润率(%)'], top: 0, right: 0, itemWidth: 10, itemHeight: 10, textStyle: { color: C.text2, fontSize: 11 } },
+  xAxis: axisX(months),
+  yAxis: [axisY('{value}'), { ...axisY('{value}%'), position: 'right' }],
+  series: [
+    { name: '实收(亿)', type: 'bar', data: netRev, barWidth: 16, itemStyle: { color: C.data[0], borderRadius: [3,3,0,0] } },
+    { name: '利润率(%)', type: 'line', yAxisIndex: 1, data: margin, smooth: 0.2, symbol: 'circle', symbolSize: 5, lineStyle: { color: C.data[2], width: 2 }, itemStyle: { color: C.data[2] } },
+  ],
+});
+
+/* ----- 渠道占比饼 ----- */
+const cChannel = echarts.init(document.getElementById('chart-channel'));
+cChannel.setOption({
+  tooltip: { trigger: 'item', ...tooltipStyle(), formatter: '{b}<br/>{d}%' },
+  series: [{
+    type: 'pie', radius: ['54%', '78%'], center: ['50%', '52%'],
+    itemStyle: { borderColor: C.surface1, borderWidth: 2 },
+    label: { color: C.text2, fontSize: 11, formatter: '{b} {d}%' },
+    labelLine: { lineStyle: { color: C.text3 } },
+    data: [
+      { value: 43.96, name: 'POS 点餐', itemStyle: { color: C.data[0] } },
+      { value: 27.88, name: '美团', itemStyle: { color: C.data[1] } },
+      { value: 15.97, name: '饿了么', itemStyle: { color: C.data[2] } },
+      { value: 12.25, name: '小程序', itemStyle: { color: C.data[3] } },
+    ],
+  }],
+});
+
+/* ----- 门店明细表 ----- */
+const stores = [
+  { name: '合肥青阳南路店', loc: '安徽 / 合肥四区', net: '10.95 亿', margin: '12.7%', mNeg: false, comp: '24.9', tone: 'warn' },
+  { name: '北京太阳宫凯德MALL店', loc: '北京 / 北京一区', net: '9.98 亿', margin: '4.9%', mNeg: false, comp: '25.3', tone: 'bad' },
+  { name: '北京新中关购物中心店', loc: '北京 / 北京一区', net: '9.12 亿', margin: '-5.5%', mNeg: true, comp: '24.8', tone: 'bad' },
+  { name: '巢湖向阳路店', loc: '安徽 / 皖南二区', net: '10.18 亿', margin: '15.5%', mNeg: false, comp: '10.7', tone: 'ok' },
+  { name: '怀宁路店', loc: '安徽 / 合肥四区', net: '8.87 亿', margin: '3.8%', mNeg: false, comp: '20.1', tone: 'warn' },
+];
+document.getElementById('store-table').innerHTML = stores.map(s => `
+  <tr>
+    <td><div class="name">${s.name}</div><div class="meta">${s.loc}</div></td>
+    <td><span class="pill ${s.tone}">${s.tone === 'ok' ? '健康' : s.tone === 'warn' ? '需关注' : '高风险'}</span></td>
+    <td class="num">${s.net}</td>
+    <td class="num ${s.mNeg ? 'neg' : ''}">${s.margin}</td>
+    <td class="num">${s.comp} / 万单</td>
+  </tr>`).join('');
+
+window.addEventListener('resize', () => { cTrend.resize(); cChannel.resize(); });
+</script>
+</body>
+</html>

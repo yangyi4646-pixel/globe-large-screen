@@ -1,0 +1,29 @@
+{
+    "$schema": "../public/settings.schema.json",
+    "page": {
+        "pgType": "LARGE_SCREEN",
+        "exemptDesignLint": true,
+        "exemptReason": "TowerX 高端大屏，详见 docs/design/ADR-001-towerx-large-screen-exemption.md"
+    },
+    "mode": "demo",
+    "brand": {
+        "metadataLine": "[02] · 医疗物流控制塔 · v 2.5",
+        "tagline": "HEALTHCARE LOGISTICS · AUTONOMOUS RESPONSE",
+        "heroTitleLine1": "Guarding",
+        "heroFocalPhrase": "Life Lines",
+        "heroTitleLine2": "in Real Time",
+        "feedSubhead": "华东医疗 · AUTO-TRIAGED",
+        "regionLabel": "华东医疗 · 28 医院"
+    },
+    "telemetry": {
+        "latLabel": "医院数",
+        "lat": "28 家",
+        "latencyLabel": "配送时效",
+        "latency": "6.2h",
+        "modelLabel": "准时率",
+        "model": "97.8%",
+        "confidenceLabel": "应急通道",
+        "confidence": "4 条激活",
+        "savedAmount": "¥ 8.76M"
+    }
+}

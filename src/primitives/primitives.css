@@ -1,0 +1,38 @@
+/*
+ * SuperApp Globe —— 原语组件公共样式(随 dist/index.css 一起发布)。
+ *
+ * 消费方通过 `import '@guandata/superapp-globe/styles'` 获得这些类。
+ * 类名统一加 `sag-` 前缀(SuperApp Globe),避免与宿主项目全局样式冲突,
+ * 同时允许消费方按类名做覆盖。
+ *
+ * 这里的玻璃拟态(backdrop-filter blur / 大圆角 / 大柔和阴影)是 ADR-001
+ * LARGE_SCREEN 豁免明确保护的暗夜美学手法,不走 BI 看板硬底线;因此本文件
+ * 刻意不纳入 design:lint 扫描路径。数值来自 16 轮视觉反馈调出的基准值。
+ */
+
+/* 玻璃面板 —— HUD 容器(右栏 / 详情卡 / 自定义指标面板)。 */
+.sag-glass-panel {
+    --sag-glass-blur: 14px;
+    --sag-glass-radius: 28px;
+    background: rgba(255, 255, 255, 0.045);
+    backdrop-filter: blur(var(--sag-glass-blur)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--sag-glass-blur)) saturate(150%);
+    border-radius: var(--sag-glass-radius);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.18),
+        inset 0 -16px 24px -18px rgba(255, 255, 255, 0.08),
+        0 28px 70px -28px rgba(0, 0, 0, 0.6);
+}
+
+/* 玻璃胶囊 —— 小尺寸状态标签(LIVE / 异常 / AI 等 pill)。 */
+.sag-glass-panel--pill {
+    --sag-glass-blur: 14px;
+    --sag-glass-radius: 999px;
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(var(--sag-glass-blur)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--sag-glass-blur)) saturate(150%);
+    border-radius: var(--sag-glass-radius);
+    box-shadow:
+        inset 0 2px 1px rgba(255, 255, 255, 0.38),
+        inset 0 -10px 14px -10px rgba(255, 255, 255, 0.14);
+}

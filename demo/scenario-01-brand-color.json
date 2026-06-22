@@ -1,0 +1,17 @@
+{
+    "$schema": "../public/settings.schema.json",
+    "page": {
+        "pgType": "LARGE_SCREEN",
+        "exemptDesignLint": true,
+        "exemptReason": "TowerX 高端大屏，详见 docs/design/ADR-001-towerx-large-screen-exemption.md"
+    },
+    "mode": "demo",
+    "brand": {
+        "primaryColor": "#3FCB95",
+        "metadataLine": "[01] · GLOBAL CONTROL TOWER · v 2.5",
+        "tagline": "SUPPLY CHAIN · AUTONOMOUS RESPONSE",
+        "heroTitleLine1": "Steering",
+        "heroFocalPhrase": "East Asia",
+        "heroTitleLine2": "in Real Time"
+    }
+}

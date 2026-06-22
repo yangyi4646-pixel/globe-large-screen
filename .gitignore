@@ -1,0 +1,12 @@
+.DS_Store
+dist
+node_modules
+.env
+coverage
+*.zip
+.playwright-mcp/
+tmp/
+
+# 本地独立 HTML 产物(codex 生成,仅本地使用,不提交远端)
+/*.html
+!/index.html

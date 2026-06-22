@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=20260422" />
+        <meta name="description" content="请先替换应用名称、favicon 和默认模板素材，再开始业务开发。" />
+        <title>请替换这里的应用标题</title>
+        <script>
+            (function () {
+                // Keep relative assets resolved from the mounted app root when BrowserRouter deep routes are refreshed.
+                const matched = window.location.pathname.match(/^(.*\/open-apps\/[^/]+)(?:\/|$)/);
+                const appBasename = matched ? matched[1] : '';
+                const baseHref = appBasename ? appBasename + '/' : '/';
+
+                window.__APP_BASENAME__ = appBasename;
+
+                const baseElement = document.createElement('base');
+                baseElement.setAttribute('href', baseHref);
+                document.head.insertBefore(baseElement, document.head.firstChild);
+            })();
+        </script>
+        <script>
+            (function () {
+                const localHostnames = ['localhost', '127.0.0.1', '0.0.0.0', '::1', '[::1]'];
+                const isLocalDebug =
+                    window.location.protocol === 'file:' || localHostnames.includes(window.location.hostname);
+
+                if (isLocalDebug) {
+                    return;
+                }
+
+                const gaScript = document.createElement('script');
+                gaScript.async = true;
+                gaScript.src = 'https://www.googletagmanager.com/gtag/js?id=G-800H8JWDPP';
+                document.head.appendChild(gaScript);
+
+                window.dataLayer = window.dataLayer || [];
+                window.gtag = function () {
+                    window.dataLayer.push(arguments);
+                };
+
+                window.gtag('js', new Date());
+                window.gtag('config', 'G-800H8JWDPP');
+
+                window.gtag('event', 'super_app_visit', {
+                    origin: window.location.origin,
+                });
+            })();
+        </script>
+    </head>
+    <body>
+        <div id="root"></div>
+        <script type="module" src="./main.tsx"></script>
+    </body>
+</html>

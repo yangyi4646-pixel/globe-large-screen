@@ -1,0 +1,57 @@
+/*
+ * HUD 共享样式（CSS Module 作用域）。所有 TowerX HUD 视觉相关的「难以
+ * 内联」的部分（@keyframes、:hover、伪元素）都集中在这里。日常颜色 /
+ * 字号 / 间距 / 阴影优先走 inline style。
+ *
+ * 这个文件不在 design:lint:strict 的扫描路径内，可以使用 backdrop-filter:
+ * blur、大圆角、超 8px shadow 等违反 BI 看板硬底线的视觉手法 —— 这就是
+ * ADR-001 LARGE_SCREEN 豁免所保护的样式入口。
+ */
+
+/* 实时心跳点。0.4s 周期 ease-in-out。 */
+@keyframes hudPulse {
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.45);
+        opacity: 0.65;
+    }
+}
+
+.pulseDot {
+    animation: hudPulse 1.8s ease-in-out infinite;
+}
+
+/* 玻璃卡片 —— 右栏 AlertFeed 用。在 LED 大屏可视环境下，blur 14px +
+ * 内侧亮带是营造「漂浮」感的关键。 */
+.liquidGlass {
+    background: rgba(255, 255, 255, 0.045);
+    backdrop-filter: blur(14px) saturate(150%);
+    -webkit-backdrop-filter: blur(14px) saturate(150%);
+    border-radius: 28px;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.18),
+        inset 0 -16px 24px -18px rgba(255, 255, 255, 0.08),
+        0 28px 70px -28px rgba(0, 0, 0, 0.6);
+}
+
+/* 小尺寸玻璃片 —— Header 的 LIVE / 异常 / AI pill 用。 */
+.glassPill {
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(14px) saturate(150%);
+    -webkit-backdrop-filter: blur(14px) saturate(150%);
+    box-shadow:
+        inset 0 2px 1px rgba(255, 255, 255, 0.38),
+        inset 0 -10px 14px -10px rgba(255, 255, 255, 0.14);
+}
+
+/* AlertRow hover —— 鼠标悬停时轻微抬起，给「可点击」反馈。 */
+.alertRow {
+    transition: background 220ms ease, transform 220ms ease;
+}
+.alertRow:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
