@@ -49,3 +49,8 @@ export type {
     TowerXAssets,
     UseTowerXConfigResult,
 } from './components/towerx/config/useTowerXConfig';
+
+// ⑤ 实时调参面板 —— 默认不接入样板,消费方按需自己渲染(接入示例见 README「实时调参面板」)
+export { GlobeEditor3D } from './components/towerx/editor/GlobeEditor3D';
+export { defaultWebGLConfig } from './components/towerx/webglConfig';
+export type { WebGLGlobeConfig } from './components/towerx/webglConfig';

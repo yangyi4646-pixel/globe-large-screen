@@ -12,8 +12,8 @@
 ```bash
 # 从 GitHub 安装(装最新默认分支)
 npm install github:yangyi4646-pixel/globe-large-screen
-# 锁定版本(推荐;需仓库已打对应 tag,如 v0.1.0)
-npm install github:yangyi4646-pixel/globe-large-screen#v0.1.0
+# 锁定版本(推荐;需仓库已打对应 tag,如 v0.1.1)
+npm install github:yangyi4646-pixel/globe-large-screen#v0.1.1
 # 等价完整写法:
 # npm install git+https://github.com/yangyi4646-pixel/globe-large-screen.git
 # 若之后发布到 npm 远端:npm install @guandata/superapp-globe
@@ -113,6 +113,38 @@ export default function App() {
 包**不支持**跟 deck.gl 同屏互操作(共享 WebGL context / 双 canvas 叠层等)。
 你想这么干,自己编程解决。详见 [架构文档 §0.3 边界哲学](docs/architecture/towerx-template.md#03-包的边界哲学)。
 
+## 实时调参面板(GlobeEditor3D)
+
+包导出一个实时调参面板 `GlobeEditor3D`,把 `WebGLGlobeConfig` 的全部参数(球面 / 大气 / bloom / 链路 / 相机 / 开场动画)做成滑块、开关实时调,并能「复制为默认值」把当前数值导出成 TS 字面量。它**默认不接进** `SuperAppGlobeApp`(样板保持干净),消费方按需自己接:
+
+```tsx
+import { useState } from 'react';
+import { DarkGlobe, GlobeEditor3D, defaultWebGLConfig, type WebGLGlobeConfig } from '@guandata/superapp-globe';
+import '@guandata/superapp-globe/styles';
+
+export default function App() {
+    const [config, setConfig] = useState<WebGLGlobeConfig>(defaultWebGLConfig);
+    // 用 URL ?tuner=1(或你自己的开关)控制面板显隐,生产环境默认关
+    const tunerOpen = new URLSearchParams(location.search).get('tuner') === '1';
+    return (
+        <>
+            <DarkGlobe config={config}>{/* CityGlow / FlowLine ... */}</DarkGlobe>
+            {tunerOpen && (
+                <aside style={{ position: 'fixed', top: 24, right: 24, width: 360 }}>
+                    <GlobeEditor3D
+                        config={config}
+                        onChange={setConfig}
+                        onReset={() => setConfig(defaultWebGLConfig)}
+                    />
+                </aside>
+            )}
+        </>
+    );
+}
+```
+
+> 调好后点面板里「复制为默认值」,把导出的 `defaultWebGLConfig` 字面量粘回你自己的代码冻结基线。
+
 ## 客户化范围
 
 **可以改**:品牌色 / 视觉密度 / 相机机位 / 布局(改 `public/settings.json`,参见 `public/settings.schema.json`)、原语组件 props、用 `<LiquidGlassPanel />` 自由拼 HUD。
@@ -148,10 +180,8 @@ export default function App() {
 ## 完整文档
 
 - [架构定位 / 商业角色 / 美学边界 / 矩阵](docs/architecture/towerx-template.md)
-- [客户开发执行 SOP](docs/sop/build-with-towerx.md)
 - [3D 资产采购 SOP](docs/sop/3d-asset-sourcing.md)
-- [设计豁免决策 ADR-001](docs/design/ADR-001-towerx-large-screen-exemption.md)
 
 ## 版本
 
-v0.1.0(MVP,已通过 Studio Startup 集成测试)
+v0.1.1 —— 导出 `GlobeEditor3D` 实时调参面板;精简文档(移除 starter template 残留的 BI 卡片/设计体系文档)。基于 v0.1.0(MVP,已通过 Studio Startup 集成测试)。
